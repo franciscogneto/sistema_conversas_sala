@@ -1,10 +1,5 @@
-import firebase from "firebase";
-import { createContext, useState, useEffect } from "react";
-import { Route, BrowserRouter } from "react-router-dom";
-
-import { Home } from "./pages/Home";
-import { NewRoom } from "./pages/NewRoom";
-import { auth } from "./services/firebase";
+import { createContext, ReactNode, useEffect, useState } from "react";
+import { auth, firebase } from "../services/firebase";
 
 type User = {
   id: string;
@@ -17,16 +12,22 @@ type AuthContextType = {
   signInWithGoogle: () => Promise<void>;
 };
 
+type AuthContextProviderProps = {
+  children: ReactNode; //ReacNode é o tipo do componente do react
+};
+
 //quando faço 'as any' ignora a tipagem do typescript
 export const AuthContext = createContext({} as AuthContextType); //passa a informação a ser armazenada dentro do contexto
 //sempre tem que prover uma informação p´ro contexto, se fort string coloca '' e se for objeto coloca {}
 
-function App() {
+export function AuthContextProvider(props: AuthContextProviderProps) {
   const [user, setUser] = useState<User>(); //criando estado e adicionando o tipo para não dar pau na hora de usar a funcao setUser saber o q vai receber
   //as informações do useState só ficam disponíveis enquanto o usuário estiver mexendo, sendo assim quando der F5 ou saiur e voltar terá perdido os dados, para driblar isso tem que recuperar o estado
 
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
+    //coloca em uma variávfel para a gente pdoer desligar ou no caso parar de 'ouvir'
+    //existia um login prefeito por este usuário??
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         const { displayName, photoURL, uid } = user;
 
@@ -41,6 +42,11 @@ function App() {
         });
       }
     }); //event listener, caso o firebase identifique que já logou algum usuário, retorna o usuário
+
+    //sempre que declarar um eventListener, tem que se 'descadastar' deste evento no final do use effect para não ficar ouvindo de forma desnecessária
+    return () => {
+      unsubscribe();
+    };
   }, []); //Primeiro parâmetro a função a ser executada e o segundo quando será executada, [] vázio executará apenas uma vez (na inicialização do componente)
 
   async function signInWithGoogle() {
@@ -62,14 +68,8 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <AuthContext.Provider value={{ user, signInWithGoogle }}>
-        <Route path="/" exact={true} component={Home} />
-        <Route path="/rooms/new" component={NewRoom} />
-      </AuthContext.Provider>
-      //Tudo que esta dentro do provider enxergara o contexto
-    </BrowserRouter>
+    <AuthContext.Provider
+      value={{ user, signInWithGoogle }}
+    ></AuthContext.Provider>
   );
 }
-
-export default App;
