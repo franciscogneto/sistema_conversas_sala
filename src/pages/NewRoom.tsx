@@ -20,6 +20,8 @@ export function NewRoom() {
 
   // const {value,setValue} = useContext(TestContext);
 
+  function handleCreateRoom() {}
+
   return (
     <div id="page-auth">
       <aside>
@@ -34,7 +36,7 @@ export function NewRoom() {
         <div className="main-content">
           <img src={logoImg} alt="logo" />
           <h2>Criar uma nova sala</h2>
-          <form>
+          <form onSubmit={handleCreateRoom}>
             <input type="text" placeholder="nome da sala" />
             <Button type="submit">Criar sala</Button>
           </form>
