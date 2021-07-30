@@ -1,5 +1,5 @@
 import { Link, useHistory } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, FormEvent, useState } from "react";
 
 import { Button } from "../components/button";
 import illustrationImg from "../assets/images/illustration.svg";
@@ -8,9 +8,12 @@ import googleIconImg from "../assets/images/google-icon.svg";
 import "../styles/auth.scss";
 import { AuthContext } from "../contexts/AuthContext";
 
-export function NewRoom() {
-  //const { user} = useContext(AuthContext);
+import { database } from "../services/firebase";
+import { useAuth } from "../hooks/useAuth";
 
+export function NewRoom() {
+  const { user, signInWithGoogle } = useAuth();
+  const history = useHistory();
   /*async function handleCreateRoom(){
         if(!user){
             await signInWithGoogle();
@@ -19,8 +22,22 @@ export function NewRoom() {
     }*/
 
   // const {value,setValue} = useContext(TestContext);
+  const [newRoom, setNewRoom] = useState("");
 
-  function handleCreateRoom() {}
+  async function handleCreateRoom(event: FormEvent) {
+    // toda funcao recebe o evento, que neste vcaso é o formevent
+    event.preventDefault(); // não pisca a tela
+    if (newRoom.trim() == "") {
+      return;
+    }
+
+    const roomRef = database.ref("rooms");
+    const firebaseRoom = await roomRef.push({
+      title: newRoom,
+      authorId: user?.id,
+    });
+    history.push(`/rooms/${firebaseRoom.key}`);
+  }
 
   return (
     <div id="page-auth">
@@ -37,7 +54,14 @@ export function NewRoom() {
           <img src={logoImg} alt="logo" />
           <h2>Criar uma nova sala</h2>
           <form onSubmit={handleCreateRoom}>
-            <input type="text" placeholder="nome da sala" />
+            <input
+              type="text"
+              placeholder="nome da sala"
+              onChange={(event) => {
+                setNewRoom(event.target.value);
+              }}
+              value={newRoom}
+            />
             <Button type="submit">Criar sala</Button>
           </form>
           <p>

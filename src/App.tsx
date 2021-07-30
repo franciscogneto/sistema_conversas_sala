@@ -1,10 +1,12 @@
 import firebase from "firebase";
 import { createContext, useState, useEffect } from "react";
-import { Route, BrowserRouter } from "react-router-dom";
+import { Route, BrowserRouter, Switch } from "react-router-dom"; //Switch não deixa duas rotas serem acessadas ao mesmo tempo, tipo switch case
 
 import { Home } from "./pages/Home";
 import { NewRoom } from "./pages/NewRoom";
+import { Room } from "./pages/Room";
 import { auth } from "./services/firebase";
+import { AuthContextProvider } from "./contexts/AuthContext";
 
 type User = {
   id: string;
@@ -26,7 +28,7 @@ function App() {
   //as informações do useState só ficam disponíveis enquanto o usuário estiver mexendo, sendo assim quando der F5 ou saiur e voltar terá perdido os dados, para driblar isso tem que recuperar o estado
 
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
+    const unsubcribe = auth.onAuthStateChanged((user) => {
       if (user) {
         const { displayName, photoURL, uid } = user;
 
@@ -41,6 +43,10 @@ function App() {
         });
       }
     }); //event listener, caso o firebase identifique que já logou algum usuário, retorna o usuário
+
+    return () => {
+      unsubcribe();
+    }; // s descadastrando do event listener para não ficar ouvindo
   }, []); //Primeiro parâmetro a função a ser executada e o segundo quando será executada, [] vázio executará apenas uma vez (na inicialização do componente)
 
   async function signInWithGoogle() {
@@ -63,11 +69,13 @@ function App() {
 
   return (
     <BrowserRouter>
-      <AuthContext.Provider value={{ user, signInWithGoogle }}>
-        <Route path="/" exact={true} component={Home} />
-        <Route path="/rooms/new" component={NewRoom} />
-      </AuthContext.Provider>
-      //Tudo que esta dentro do provider enxergara o contexto
+      <AuthContextProvider>
+        <Switch>
+          <Route path="/" exact={true} component={Home} />
+          <Route path="/rooms/new" component={NewRoom} />
+          <Route path="/rooms/:id" component={Room} />
+        </Switch>
+      </AuthContextProvider>
     </BrowserRouter>
   );
 }

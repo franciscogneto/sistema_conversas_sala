@@ -5,22 +5,39 @@ import "../styles/auth.scss";
 import { Button } from "../components/button";
 
 import { useHistory } from "react-router-dom";
-import { useContext } from "react";
-import { firebase, auth } from "../services/firebase";
-import { AuthContext } from "../App";
+import { FormEvent, useContext, useState } from "react";
+import { firebase, auth, database } from "../services/firebase";
+import { AuthContext } from "../contexts/AuthContext";
 //webpack (snowpack, vite, ...): module blander -> pega a extensão do arquivo
 //&amp; = &; & é utilizado no html para indicar símbolos
 
 export function Home() {
   const history = useHistory();
   const { user, signInWithGoogle } = useContext(AuthContext);
+  const [roomCode, setRoomCode] = useState("");
 
   async function handleCreateRoom() {
     console.log("aquiii");
+    console.log(typeof signInWithGoogle);
     if (!user) {
       await signInWithGoogle();
     }
     history.push("/rooms/new");
+  }
+
+  async function handleJoinRoom(event: FormEvent) {
+    event.preventDefault();
+    if (roomCode.trim() === "") {
+      return;
+    }
+    const roomRef = await database.ref(`rooms/${roomCode}`).get();
+
+    if (!roomRef.exists()) {
+      alert("Sala não existe.");
+      return;
+    }
+
+    return history.push(`rooms/${roomCode}`);
   }
 
   return (
@@ -41,8 +58,15 @@ export function Home() {
             Crie sua sala com o Google
           </button>
           <div className="separator">ou entre em uma sala</div>
-          <form>
-            <input type="text" placeholder="digite o código da sala" />
+          <form onSubmit={handleJoinRoom}>
+            <input
+              type="text"
+              placeholder="digite o código da sala"
+              onChange={(event) => {
+                setRoomCode(event.target.value);
+              }}
+              value={roomCode}
+            />
             <Button type="submit">Entrar na sala</Button>
           </form>
         </div>
