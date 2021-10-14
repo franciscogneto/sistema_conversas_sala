@@ -45,8 +45,8 @@ export function Room() {
 
   useEffect(() => {
     const roomRef = database.ref(`rooms/${roomId}`);
-    roomRef.once("value", (room) => {
-      //Esta ouvindo um evento dom firebase uma unica vez, para escutar mais de uma vez usa o `on`
+    roomRef.on("value", (room) => {
+      //Esta ouvindo um evento dom firebase uma unica vez(once), para escutar mais de uma vez usa o `on`
       //console.log(room.val()); // pega os valores da room
       const databaseRoom = room.val();
       const firebaseQuestions: FirebaseQuestions = databaseRoom.questions ?? {}; // Para caso o objecto venha como null
@@ -104,7 +104,7 @@ export function Room() {
       <main className="content">
         <div className="room-title">
           <h1>Sala {title}</h1>
-          {questions.length > 0 && <span>{questions.length} Perguntas</span>}
+          {questions.length > 0 && <span>{questions.length} Pergunta(s)</span>}
         </div>
 
         <form onSubmit={handleSendQuestion}>
