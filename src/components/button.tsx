@@ -15,9 +15,15 @@ import "../styles/button.scss";
     );
 } // quando faz o export direto tem que receber da sseguitne forma: import {Button} from './components/button', e caso o nome da função seja alterado, 
 //terá que alterar em todos arquivos que usam ele, diferente se tivesse feito a função e no final escrito 'export default Button'*/
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>; //tipagem do elemento do botao global: HTMLButtonElement
-export function Button(props: ButtonProps) {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  isOutLined?: boolean;
+}; //tipagem do elemento do botao global: HTMLButtonElement + a propriedade 'isOutLined' (caso tenha)
+export function Button({ isOutLined = false, ...props }: ButtonProps) {
+  //Desestrutura pega o 'isOutLined' (caso não tenha seta como false) e joga o restante dos atributos em props devido ao restOperator
   return (
-    <button className="button" {...props}></button> //Repassa todos atributos de props para o botão
+    <button
+      className={`button ${isOutLined ? "outlined" : ""}`}
+      {...props}
+    ></button> //Repassa todos atributos de props para o botão && se outlined for true adiciona mais uma classe
   );
 }
